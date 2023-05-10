@@ -1,20 +1,24 @@
-const fs = require('fs');
-const path = require('path');
-const readline = require('readline');
+const fs = require("fs");
+const path = require("path");
+const writeStream = fs.createWriteStream(path.join(__dirname, "text.txt"));
+const { stdin, stdout, exit } = require('process');
+const textConsole = {
+  START: "Hello! Enter your text below:\n",
+  FINISH: "\nGoodbyе! See you later!"
+}
 
-const writeStream = fs.createWriteStream(path.join(__dirname, 'out.txt'));
+stdout.write(textConsole.START)
 
-const readLine = readline.createInterface({ input: process.stdin });
+stdin.on("data", (data) => {
+  if (data.toString().trim() === "exit") {
+    exitConsole();
+  }
+  writeStream.write(data);
+})
 
-const exit = () => {
-  readLine.close();
-  console.log('\n', 'Goodbye, my dear friend');
-  fs.unlink(writeStream.path, process.exit);
-};
+process.on("SIGINT", exitConsole)
 
-readLine.on('line', (read) => {
-  if (read.trimEnd() === 'exit') exit();
-  writeStream.write(read + '\n');
-});
-
-process.on('SIGINT', exit);
+function exitConsole() {
+  stdout.write(textConsole.FINISH);
+  exit();
+}
