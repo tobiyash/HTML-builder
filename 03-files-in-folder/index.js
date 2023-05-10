@@ -1,30 +1,15 @@
-const fs = require('fs/promises');
-const path = require('path');
+const path = require("path");
+const fs = require("fs");
+const folder = path.join(__dirname, "secret-folder");
 
-const getStats = async (filepath) => {
-  const filestat = await fs.stat(filepath);
-  const filepart = path.parse(filepath);
-  return [filepart.name, filepart.ext.slice(1), filestat.size / 1000 + 'kB']
-    .filter(Boolean)
-    .join(' - ');
-};
-
-const getFilesDeep = async (directory = __dirname) => {
-  const entries = await fs.readdir(directory, { withFileTypes: true });
-  const files = []
-  for (const entry of entries) {
-    const entrypath = path.join(directory, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...await getFilesDeep(entrypath))
-    } else {
-      files.push(entrypath)
-    }
-  }
-  return files
-};
-
-(async () => {
-  const filenames = await getFilesDeep(path.join(__dirname, 'secret-folder'));
-  const stats = await Promise.all(filenames.map(getStats));
-  stats.forEach((s) => console.log(s))
-})();
+fs.readdir(folder, (err, files) => {
+  if (err) throw err;
+  files.forEach((file) => {
+    const fileInfo = path.parse(file);
+    fs.stat(path.join(folder, file), (err, stats) => {
+      if (err) throw err;
+      if (stats.isFile()) 
+      console.log(`${fileInfo.name} - ${fileInfo.ext.replace(".", "")} - ${Number(stats.size / 1024).toFixed(2)}kb`);
+    })
+  })  
+})
